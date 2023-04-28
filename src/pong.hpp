@@ -5,11 +5,6 @@
 #include <SDL2/SDL_render.h>
 #include <vector>
 
-struct pos {
-    int x;
-    int y;
-} typedef pos;
-
 class Pong {
 public:
     Pong();
