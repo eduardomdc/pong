@@ -8,30 +8,23 @@
 #define RES_WIDTH 640
 #define RES_HEIGHT 480
 
-void drawPixel(SDL_Point pos, SDL_Color color, Uint8* pixelptr){
-    pixelptr = pixelptr + ((pos.y * RES_WIDTH + pos.x)*4);
-    *pixelptr = color.b;
-    *(pixelptr+1) = color.g;
-    *(pixelptr+2) = color.r;
-    *(pixelptr+3) = color.a;
-}
-
-void drawCircle(SDL_Point center, int radius, SDL_Surface* surface, SDL_Color color){
+void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer, SDL_Color color){
     int r = radius;
     int x = r-1;
     int y = 0;
     int dx = 1;
     int dy = 1;
     int err = dx - (r << 1);
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     while ( x >= y ) {
-        drawPixel({x+center.x, y+center.y}, color, (Uint8*)surface->pixels);
-        drawPixel({x+center.x, -y+center.y}, color, (Uint8*)surface->pixels);
-        drawPixel({-x+center.x, y+center.y}, color, (Uint8*)surface->pixels);
-        drawPixel({-x+center.x, -y+center.y}, color, (Uint8*)surface->pixels);
-        drawPixel({y+center.x, x+center.y}, color, (Uint8*)surface->pixels);
-        drawPixel({y+center.x, -x+center.y}, color, (Uint8*)surface->pixels);
-        drawPixel({-y+center.x, x+center.y}, color, (Uint8*)surface->pixels);
-        drawPixel({-y+center.x, -x+center.y}, color, (Uint8*)surface->pixels);
+        SDL_RenderDrawPoint(renderer, x+center.x, y+center.y);
+        SDL_RenderDrawPoint(renderer, x+center.x, -y+center.y);
+        SDL_RenderDrawPoint(renderer, -x+center.x, y+center.y);
+        SDL_RenderDrawPoint(renderer, -x+center.x, -y+center.y);
+        SDL_RenderDrawPoint(renderer, y+center.x, x+center.y);
+        SDL_RenderDrawPoint(renderer, y+center.x, -x+center.y);
+        SDL_RenderDrawPoint(renderer, -y+center.x, x+center.y);
+        SDL_RenderDrawPoint(renderer, -y+center.x, -x+center.y);
         if ( err <= 0){
             y++;
             err += dy;
@@ -53,8 +46,8 @@ Ball::Ball(int radius, SDL_Point pos, vector velocity){
 }
 
 
-void Ball::draw(SDL_Surface* surface){
-    drawCircle(this->pos, this->radius, surface, this->color);
+void Ball::draw(SDL_Renderer* renderer){
+    drawCircle(this->pos, this->radius, renderer, this->color);
 }
 
 void Ball::update(){
@@ -92,7 +85,7 @@ void Pong::initSDL(){
                 480,
                 SDL_WINDOW_BORDERLESS
                 );
-        this->surface = SDL_GetWindowSurface(this->window);
+        this->renderer = SDL_CreateRenderer(this->window, -1, 0);
     }
     else {
         this->running = false;
@@ -123,9 +116,10 @@ void Pong::getInput(){
 }
 
 void Pong::render(){
-    SDL_FillRect(this->surface, NULL, 0x000000);
-    this->ball->draw(this->surface);
-    SDL_UpdateWindowSurface(this->window);
+    SDL_RenderClear(this->renderer);
+    this->ball->draw(this->renderer);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderPresent(this->renderer);
 }
 
 void Pong::update(){ 

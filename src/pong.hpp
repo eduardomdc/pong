@@ -14,7 +14,7 @@ class Ball {
 public:
     Ball(int radius, SDL_Point pos, vector velocity);
     void update();
-    void draw(SDL_Surface* surface);
+    void draw(SDL_Renderer* renderer);
     int radius;
     SDL_Point pos;
     SDL_Color color;
@@ -34,7 +34,6 @@ private:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     SDL_Event currentEvent;
-    SDL_Surface* surface = nullptr;
     Ball* ball;
 };
 
