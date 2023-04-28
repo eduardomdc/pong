@@ -9,6 +9,11 @@
 #define RES_HEIGHT 480
 
 void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer, SDL_Color color){
+    /** how many points does a circle with r radius has?
+     * pass this into ball class
+     * **/
+    SDL_Point* points = new SDL_Point[radius*10];
+    int pointsIndex = 0;
     int r = radius;
     int x = r-1;
     int y = 0;
@@ -17,14 +22,22 @@ void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer, SDL_Color 
     int err = dx - (r << 1);
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     while ( x >= y ) {
-        SDL_RenderDrawPoint(renderer, x+center.x, y+center.y);
-        SDL_RenderDrawPoint(renderer, x+center.x, -y+center.y);
-        SDL_RenderDrawPoint(renderer, -x+center.x, y+center.y);
-        SDL_RenderDrawPoint(renderer, -x+center.x, -y+center.y);
-        SDL_RenderDrawPoint(renderer, y+center.x, x+center.y);
-        SDL_RenderDrawPoint(renderer, y+center.x, -x+center.y);
-        SDL_RenderDrawPoint(renderer, -y+center.x, x+center.y);
-        SDL_RenderDrawPoint(renderer, -y+center.x, -x+center.y);
+        *(points+pointsIndex) = SDL_Point({x+center.x, y+center.y});
+        pointsIndex++;
+        *(points+pointsIndex) = SDL_Point({x+center.x, -y+center.y});
+        pointsIndex++;
+        *(points+pointsIndex) = SDL_Point({-x+center.x, y+center.y});
+        pointsIndex++;
+        *(points+pointsIndex) = SDL_Point({-x+center.x, -y+center.y});
+        pointsIndex++;
+        *(points+pointsIndex) = SDL_Point({y+center.x, x+center.y});
+        pointsIndex++;
+        *(points+pointsIndex) = SDL_Point({y+center.x, -x+center.y});
+        pointsIndex++;
+        *(points+pointsIndex) = SDL_Point({-y+center.x, x+center.y});
+        pointsIndex++;
+        *(points+pointsIndex) = SDL_Point({-y+center.x, -x+center.y});
+        pointsIndex++;
         if ( err <= 0){
             y++;
             err += dy;
@@ -36,13 +49,15 @@ void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer, SDL_Color 
             err += dx - (r << 1);
         }
     }
+    SDL_RenderDrawPoints(renderer, points, pointsIndex);
+    delete [] points;
 }
 
 Ball::Ball(int radius, SDL_Point pos, vector velocity){
     this->radius = radius;
     this->pos = pos;
     this->velocity = velocity;
-    this->color = {0,0,255,0};
+    this->color = {255,255,255,0};
 }
 
 
@@ -73,7 +88,7 @@ void Ball::update(){
 
 Pong::Pong(){
     this->running = true;
-    this->ball = new Ball(8, {320,240}, {8,8});
+    this->ball = new Ball(8, {320,240}, {5,5});
 }
 
 void Pong::initSDL(){
