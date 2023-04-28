@@ -5,25 +5,33 @@
 #include <iostream>
 #include <random>
 
-void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer){
+#define RES_WIDTH 640
+#define RES_HEIGHT 480
+
+void drawPixel(SDL_Point pos, SDL_Color color, Uint8* pixelptr){
+    pixelptr = pixelptr + ((pos.y * RES_WIDTH + pos.x)*4);
+    *pixelptr = color.b;
+    *(pixelptr+1) = color.g;
+    *(pixelptr+2) = color.r;
+    *(pixelptr+3) = color.a;
+}
+
+void drawCircle(SDL_Point center, int radius, SDL_Surface* surface, SDL_Color color){
     int r = radius;
     int x = r-1;
     int y = 0;
     int dx = 1;
     int dy = 1;
     int err = dx - (r << 1);
-    // int pointCount = r*4;
-    // int pointIndex = 0;
-    // SDL_Point* points = new SDL_Point[pointCount];
     while ( x >= y ) {
-        SDL_RenderDrawPoint(renderer, x+center.x, y+center.y);
-        SDL_RenderDrawPoint(renderer, x+center.x, -y+center.y);
-        SDL_RenderDrawPoint(renderer, -x+center.x, y+center.y);
-        SDL_RenderDrawPoint(renderer, -x+center.x, -y+center.y);
-        SDL_RenderDrawPoint(renderer, y+center.x, x+center.y);
-        SDL_RenderDrawPoint(renderer, y+center.x, -x+center.y);
-        SDL_RenderDrawPoint(renderer, -y+center.x, x+center.y);
-        SDL_RenderDrawPoint(renderer, -y+center.x, -x+center.y);
+        drawPixel({x+center.x, y+center.y}, color, (Uint8*)surface->pixels);
+        drawPixel({x+center.x, -y+center.y}, color, (Uint8*)surface->pixels);
+        drawPixel({-x+center.x, y+center.y}, color, (Uint8*)surface->pixels);
+        drawPixel({-x+center.x, -y+center.y}, color, (Uint8*)surface->pixels);
+        drawPixel({y+center.x, x+center.y}, color, (Uint8*)surface->pixels);
+        drawPixel({y+center.x, -x+center.y}, color, (Uint8*)surface->pixels);
+        drawPixel({-y+center.x, x+center.y}, color, (Uint8*)surface->pixels);
+        drawPixel({-y+center.x, -x+center.y}, color, (Uint8*)surface->pixels);
         if ( err <= 0){
             y++;
             err += dy;
@@ -37,8 +45,42 @@ void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer){
     }
 }
 
+Ball::Ball(int radius, SDL_Point pos, vector velocity){
+    this->radius = radius;
+    this->pos = pos;
+    this->velocity = velocity;
+    this->color = {0,0,255,0};
+}
+
+
+void Ball::draw(SDL_Surface* surface){
+    drawCircle(this->pos, this->radius, surface, this->color);
+}
+
+void Ball::update(){
+    this->pos.x += this->velocity.x;
+    this->pos.y += this->velocity.y;
+    if (this->pos.x + this->radius > 640){
+        this->pos.x = 640 - this->radius;
+        this->velocity.x  *= -1;
+    }
+    if (this->pos.y + this->radius > 480){
+        this->pos.y = 480 - this->radius;
+        this->velocity.y  *= -1;
+    }
+    if (this->pos.x - this->radius < 0){
+        this->pos.x = 0 + this->radius;
+        this->velocity.x  *= -1;
+    }
+    if (this->pos.y - this->radius < 0){
+        this->pos.y = 0 + this->radius;
+        this->velocity.y  *= -1;
+    }
+}
+
 Pong::Pong(){
     this->running = true;
+    this->ball = new Ball(8, {320,240}, {8,8});
 }
 
 void Pong::initSDL(){
@@ -50,9 +92,12 @@ void Pong::initSDL(){
                 480,
                 SDL_WINDOW_BORDERLESS
                 );
-        this->renderer = SDL_CreateRenderer(this->window, -1, 0);
+        this->surface = SDL_GetWindowSurface(this->window);
     }
-    else return;
+    else {
+        this->running = false;
+        return;
+    }
     if (this->renderer){
         SDL_SetRenderDrawColor(this->renderer, 0,0,0,255);
         std::cout << "Renderer Created!"<<std::endl;
@@ -77,14 +122,12 @@ void Pong::getInput(){
     }
 }
 
-void Pong::render(){ 
-    SDL_RenderClear(this->renderer);
-    SDL_SetRenderDrawColor(this->renderer, 0, 255, 0, 255);
-    drawCircle({100,100}, 8, this->renderer);
-    SDL_SetRenderDrawColor(this->renderer, 0, 0, 0, 255);
-    SDL_RenderPresent(this->renderer); 
+void Pong::render(){
+    SDL_FillRect(this->surface, NULL, 0x000000);
+    this->ball->draw(this->surface);
+    SDL_UpdateWindowSurface(this->window);
 }
 
 void Pong::update(){ 
-    
+    this->ball->update();
 }
