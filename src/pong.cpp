@@ -86,9 +86,58 @@ void Ball::update(){
     }
 }
 
+PlayerBar::PlayerBar(){
+    this->rect = {RES_WIDTH*3/4, RES_HEIGHT/2, 20, 80};
+}
+
+void PlayerBar::draw(SDL_Renderer* renderer){
+    SDL_RenderDrawRect(renderer, &this->rect);
+}
+
+Physics::Physics(Ball* ball, PlayerBar* player1){
+    this->ball = ball;
+    this->player1 = player1;
+}
+
+void Physics::update(){
+    this->ball->pos.x += this->ball->velocity.x;
+    this->ball->pos.y += this->ball->velocity.y;
+    //playerbar velocity
+    this->player1->rect.y += 3*(this->player1->downPressed-this->player1->upPressed);
+    // collision with window
+    if (this->ball->pos.x + this->ball->radius > 640){
+        this->ball->pos.x = 640 - this->ball->radius;
+        this->ball->velocity.x  *= -1;
+    }
+    if (this->ball->pos.y + this->ball->radius > 480){
+        this->ball->pos.y = 480 - this->ball->radius;
+        this->ball->velocity.y  *= -1;
+    }
+    if (this->ball->pos.x - this->ball->radius < 0){
+        this->ball->pos.x = 0 + this->ball->radius;
+        this->ball->velocity.x  *= -1;
+    }
+    if (this->ball->pos.y - this->ball->radius < 0){
+        this->ball->pos.y = 0 + this->ball->radius;
+        this->ball->velocity.y  *= -1;
+    }
+    // collision with player bars
+    if (this->ball->pos.x + this->ball->radius > this->player1->rect.x
+        && this->ball->pos.x < this->player1->rect.x + this->player1->rect.w
+        && this->ball->pos.y > this->player1->rect.y
+        && this->ball->pos.y < this->player1->rect.y+this->player1->rect.h
+        && this->ball->velocity.x > 0
+        ){
+        this->ball->pos.x = this->player1->rect.x - this->ball->radius;
+        this->ball->velocity.x  *= -1;
+    }
+}
+
 Pong::Pong(){
     this->running = true;
-    this->ball = new Ball(8, {320,240}, {1,1});
+    this->ball = new Ball(8, {320,240}, {2,1});
+    this->player1 = new PlayerBar();
+    this->physics = new Physics(this->ball, this->player1);
 }
 
 void Pong::initSDL(){
@@ -126,6 +175,30 @@ void Pong::getInput(){
             this->closeSDL();
             this->running = false;
             return;
+        case SDL_KEYDOWN:
+            switch(currentEvent.key.keysym.sym){
+            case SDLK_ESCAPE:
+                this->closeSDL();
+                this->running = false;
+                return;
+            case SDLK_UP:
+                this->player1->upPressed = true;
+                break;
+            case SDLK_DOWN:
+                this->player1->downPressed = true;
+                break;
+            }
+            break;
+        case SDL_KEYUP:
+            switch(currentEvent.key.keysym.sym){
+            case SDLK_UP:
+                this->player1->upPressed = false;
+                break;
+            case SDLK_DOWN:
+                this->player1->downPressed = false;
+                break;
+            }
+            break;
         }
     }
 }
@@ -133,10 +206,11 @@ void Pong::getInput(){
 void Pong::render(){
     SDL_RenderClear(this->renderer);
     this->ball->draw(this->renderer);
+    this->player1->draw(this->renderer);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderPresent(this->renderer);
 }
 
 void Pong::update(){ 
-    this->ball->update();
+    this->physics->update();
 }
