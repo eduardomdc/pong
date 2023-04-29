@@ -6,6 +6,8 @@
 #include <SDL2/SDL_mixer.h>
 #include <vector>
 
+class Pong;
+
 struct vector {
     float x;
     float y;
@@ -40,9 +42,10 @@ public:
 
 class Physics {
 public:
-    Physics(Ball* ball, PlayerBar* player1, PlayerBar* player2);
+    Physics(Ball* ball, PlayerBar* player1, PlayerBar* player2, Pong* game);
     void update();
     float barSpeed;
+    Pong* game;
     Ball* ball;
     PlayerBar* player1;
     PlayerBar* player2;
@@ -57,6 +60,7 @@ public:
     void closeSDL();
     void getInput();
     bool running;
+    Mixer* mixer;
 private:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
@@ -65,7 +69,6 @@ private:
     PlayerBar* player1;
     PlayerBar* player2;
     Physics* physics;
-    Mixer* mixer;
 };
 
 #endif

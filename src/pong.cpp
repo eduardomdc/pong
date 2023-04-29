@@ -57,7 +57,7 @@ void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer, SDL_Color 
 }
 
 Mixer::Mixer(){
-    this->pong = Mix_LoadMUS("press.mp3");
+    this->pong = Mix_LoadMUS("sounds/press.mp3");
     if (this->pong == NULL){
         std::cout << Mix_GetError() << std::endl;
     }
@@ -86,11 +86,12 @@ void PlayerBar::draw(SDL_Renderer* renderer){
     SDL_RenderFillRect(renderer, &this->rect);
 }
 
-Physics::Physics(Ball* ball, PlayerBar* player1, PlayerBar* player2){
+Physics::Physics(Ball* ball, PlayerBar* player1, PlayerBar* player2, Pong* game){
     this->ball = ball;
     this->player1 = player1;
     this->player2 = player2;
     this->barSpeed = 2;
+    this->game = game;
 }
 
 void Physics::update(){
@@ -105,6 +106,7 @@ void Physics::update(){
         // this->ball->velocity.x  *= -1;
         // point for player1
         this->player1->points++;
+        Mix_PlayMusic(this->game->mixer->pong, -1);
         this->ball->pos = {RES_WIDTH/2,RES_HEIGHT/2};
         this->ball->color = {255, 255, 255, 255};
         this->ball->velocity = {1,2};
@@ -113,6 +115,7 @@ void Physics::update(){
     if (this->ball->pos.y + this->ball->radius > RES_HEIGHT){
         this->ball->pos.y = RES_HEIGHT - this->ball->radius;
         this->ball->velocity.y  *= -1;
+        Mix_PlayMusic(this->game->mixer->pong, 0);
     }
     if (this->ball->pos.x - this->ball->radius < 0){
         this->ball->pos.x = 0 + this->ball->radius;
@@ -122,10 +125,12 @@ void Physics::update(){
         this->ball->color = {255, 255, 255, 255};
         this->ball->velocity = {-1,-2};
         this->barSpeed = 2;
+        Mix_PlayMusic(this->game->mixer->pong, 0);
     }
     if (this->ball->pos.y - this->ball->radius < 0){
         this->ball->pos.y = 0 + this->ball->radius;
         this->ball->velocity.y  *= -1;
+        Mix_PlayMusic(this->game->mixer->pong, 0);
     }
     // collision with player bars
     if (this->ball->pos.x - this->ball->radius < this->player1->rect.x + this->player1->rect.w
@@ -137,6 +142,7 @@ void Physics::update(){
         this->ball->pos.x = this->player1->rect.x + this->player1->rect.w + this->ball->radius;
         this->ball->color = this->player1->color;
         this->ball->velocity.x  *= -1.1;//ball speeds up
+        Mix_PlayMusic(this->game->mixer->pong, 0);
         this->barSpeed = 2*sqrt(abs(this->ball->velocity.x));
     }
     if (this->ball->pos.x + this->ball->radius > this->player2->rect.x
@@ -148,6 +154,7 @@ void Physics::update(){
         this->ball->pos.x = this->player2->rect.x - this->ball->radius;
         this->ball->color = this->player2->color;
         this->ball->velocity.x  *= -1.1;
+        Mix_PlayMusic(this->game->mixer->pong, 0);
         this->barSpeed = 2*sqrt(abs(this->ball->velocity.x));
     }
 }
@@ -157,7 +164,7 @@ Pong::Pong(){
     this->ball = new Ball(8, {RES_WIDTH/2,RES_HEIGHT/2}, {1,2});
     this->player1 = new PlayerBar({40, 200}, {0,0,255,0});
     this->player2 = new PlayerBar({580, 200}, {255,0,0,0});
-    this->physics = new Physics(this->ball, this->player1, this->player2);
+    this->physics = new Physics(this->ball, this->player1, this->player2, this);
 }
 
 void Pong::initSDL(){
