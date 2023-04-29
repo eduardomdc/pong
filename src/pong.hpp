@@ -13,7 +13,6 @@ struct vector {
 class Ball {
 public:
     Ball(int radius, SDL_Point pos, vector velocity);
-    void update();
     void draw(SDL_Renderer* renderer);
     int radius;
     SDL_Point pos;
@@ -24,18 +23,19 @@ public:
 class PlayerBar {
 public:
     PlayerBar(SDL_Point pos, SDL_Color color);
-    void update();
     void draw(SDL_Renderer* renderer);
     SDL_Rect rect;
     SDL_Color color;
     bool upPressed;
     bool downPressed;
+    int points;
 };
 
 class Physics {
 public:
     Physics(Ball* ball, PlayerBar* player1, PlayerBar* player2);
     void update();
+    float barSpeed;
     Ball* ball;
     PlayerBar* player1;
     PlayerBar* player2;

@@ -65,30 +65,10 @@ void Ball::draw(SDL_Renderer* renderer){
     drawCircle(this->pos, this->radius, renderer, this->color);
 }
 
-void Ball::update(){
-    this->pos.x += this->velocity.x;
-    this->pos.y += this->velocity.y;
-    if (this->pos.x + this->radius > 640){
-        this->pos.x = 640 - this->radius;
-        this->velocity.x  *= -1;
-    }
-    if (this->pos.y + this->radius > 480){
-        this->pos.y = 480 - this->radius;
-        this->velocity.y  *= -1;
-    }
-    if (this->pos.x - this->radius < 0){
-        this->pos.x = 0 + this->radius;
-        this->velocity.x  *= -1;
-    }
-    if (this->pos.y - this->radius < 0){
-        this->pos.y = 0 + this->radius;
-        this->velocity.y  *= -1;
-    }
-}
-
 PlayerBar::PlayerBar(SDL_Point pos, SDL_Color color){
     this->rect = {pos.x, pos.y, 20, 80};
     this->color = color;
+    this->points = 0;
 }
 
 void PlayerBar::draw(SDL_Renderer* renderer){
@@ -100,18 +80,25 @@ Physics::Physics(Ball* ball, PlayerBar* player1, PlayerBar* player2){
     this->ball = ball;
     this->player1 = player1;
     this->player2 = player2;
+    this->barSpeed = 2;
 }
 
 void Physics::update(){
     this->ball->pos.x += this->ball->velocity.x;
     this->ball->pos.y += this->ball->velocity.y;
     //playerbar velocity
-    this->player1->rect.y += 3*(this->player1->downPressed-this->player1->upPressed);
-    this->player2->rect.y += 3*(this->player2->downPressed-this->player2->upPressed);
+    this->player1->rect.y += this->barSpeed*(this->player1->downPressed-this->player1->upPressed);
+    this->player2->rect.y += this->barSpeed*(this->player2->downPressed-this->player2->upPressed);
     // collision with window
     if (this->ball->pos.x + this->ball->radius > RES_WIDTH){
         this->ball->pos.x = RES_WIDTH - this->ball->radius;
-        this->ball->velocity.x  *= -1;
+        // this->ball->velocity.x  *= -1;
+        // point for player1
+        this->player1->points++;
+        this->ball->pos = {RES_WIDTH/2,RES_HEIGHT/2};
+        this->ball->color = {255, 255, 255, 255};
+        this->ball->velocity = {1,2};
+        this->barSpeed = 2;
     }
     if (this->ball->pos.y + this->ball->radius > RES_HEIGHT){
         this->ball->pos.y = RES_HEIGHT - this->ball->radius;
@@ -119,7 +106,12 @@ void Physics::update(){
     }
     if (this->ball->pos.x - this->ball->radius < 0){
         this->ball->pos.x = 0 + this->ball->radius;
-        this->ball->velocity.x  *= -1;
+        // point for player2
+        this->player2->points++;
+        this->ball->pos = {RES_WIDTH/2,RES_HEIGHT/2};
+        this->ball->color = {255, 255, 255, 255};
+        this->ball->velocity = {-1,-2};
+        this->barSpeed = 2;
     }
     if (this->ball->pos.y - this->ball->radius < 0){
         this->ball->pos.y = 0 + this->ball->radius;
@@ -133,7 +125,9 @@ void Physics::update(){
         && this->ball->velocity.x < 0
         ){
         this->ball->pos.x = this->player1->rect.x + this->player1->rect.w + this->ball->radius;
-        this->ball->velocity.x  *= -1;
+        this->ball->color = this->player1->color;
+        this->ball->velocity.x  *= -1.1;//ball speeds up
+        this->barSpeed = 2*sqrt(abs(this->ball->velocity.x));
     }
     if (this->ball->pos.x + this->ball->radius > this->player2->rect.x
         && this->ball->pos.x < this->player2->rect.x + this->player2->rect.w
@@ -142,7 +136,9 @@ void Physics::update(){
         && this->ball->velocity.x > 0
         ){
         this->ball->pos.x = this->player2->rect.x - this->ball->radius;
-        this->ball->velocity.x  *= -1;
+        this->ball->color = this->player2->color;
+        this->ball->velocity.x  *= -1.1;
+        this->barSpeed = 2*sqrt(abs(this->ball->velocity.x));
     }
 }
 
@@ -233,7 +229,13 @@ void Pong::render(){
     SDL_RenderClear(this->renderer);
     this->ball->draw(this->renderer);
     this->player1->draw(this->renderer);
+    for (int i = 0; i < this->player1->points; i++){
+        SDL_RenderDrawLine(this->renderer, 10+10*i, 10, 10+10*i, 30);
+    }
     this->player2->draw(this->renderer);
+    for (int i = 0; i < this->player2->points; i++){
+        SDL_RenderDrawLine(this->renderer, RES_WIDTH-10+10*(-i), 10, RES_WIDTH-10+10*(-i), 30);
+    }
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderPresent(this->renderer);
 }
