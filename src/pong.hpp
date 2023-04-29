@@ -23,20 +23,22 @@ public:
 
 class PlayerBar {
 public:
-    PlayerBar();
+    PlayerBar(SDL_Point pos, SDL_Color color);
     void update();
     void draw(SDL_Renderer* renderer);
     SDL_Rect rect;
+    SDL_Color color;
     bool upPressed;
     bool downPressed;
 };
 
 class Physics {
 public:
-    Physics(Ball* ball, PlayerBar* player1);
+    Physics(Ball* ball, PlayerBar* player1, PlayerBar* player2);
     void update();
     Ball* ball;
     PlayerBar* player1;
+    PlayerBar* player2;
 };
 
 class Pong {
@@ -54,6 +56,7 @@ private:
     SDL_Event currentEvent;
     Ball* ball;
     PlayerBar* player1;
+    PlayerBar* player2;
     Physics* physics;
 };
 
