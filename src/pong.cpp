@@ -88,7 +88,7 @@ void Ball::update(){
 
 Pong::Pong(){
     this->running = true;
-    this->ball = new Ball(8, {320,240}, {5,5});
+    this->ball = new Ball(8, {320,240}, {1,1});
 }
 
 void Pong::initSDL(){

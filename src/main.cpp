@@ -9,16 +9,19 @@ int main(){
 	Pong* game = new Pong();
     Uint32 currentTime = SDL_GetTicks();
     Uint32 lastFrame = currentTime;
+    Uint32 diff;
 
     game->initSDL();
 	while(game->running){
 		game->render();
         game->update();
         game->getInput();
-        Uint32 diff = currentTime - lastFrame;
+        currentTime = SDL_GetTicks();
+        diff = currentTime - lastFrame;
+        lastFrame = currentTime;
         if (diff < frameLength){
             SDL_Delay(frameLength - diff);
-        } 
+        }
 	}
 	return 0;
 }
