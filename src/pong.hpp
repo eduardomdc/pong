@@ -3,12 +3,19 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_render.h>
+#include <SDL2/SDL_mixer.h>
 #include <vector>
 
 struct vector {
     float x;
     float y;
 } typedef vector;
+
+class Mixer {
+public:
+    Mixer();
+    Mix_Music* pong = NULL;
+};
 
 class Ball {
 public:
@@ -58,6 +65,7 @@ private:
     PlayerBar* player1;
     PlayerBar* player2;
     Physics* physics;
+    Mixer* mixer;
 };
 
 #endif

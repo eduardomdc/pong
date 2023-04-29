@@ -1,12 +1,15 @@
 #include "pong.hpp"
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
+#include <SDL2/SDL_mixer.h>
 #include <cmath>
 #include <iostream>
 #include <random>
 
 #define RES_WIDTH 640
 #define RES_HEIGHT 480
+
+
 
 void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer, SDL_Color color){
     /** how many points does a circle with r radius has?
@@ -53,6 +56,13 @@ void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer, SDL_Color 
     delete [] points;
 }
 
+Mixer::Mixer(){
+    this->pong = Mix_LoadMUS("press.mp3");
+    if (this->pong == NULL){
+        std::cout << Mix_GetError() << std::endl;
+    }
+}
+
 Ball::Ball(int radius, SDL_Point pos, vector velocity){
     this->radius = radius;
     this->pos = pos;
@@ -73,7 +83,7 @@ PlayerBar::PlayerBar(SDL_Point pos, SDL_Color color){
 
 void PlayerBar::draw(SDL_Renderer* renderer){
     SDL_SetRenderDrawColor(renderer, this->color.r, this->color.g, this->color.b, this->color.a);
-    SDL_RenderDrawRect(renderer, &this->rect);
+    SDL_RenderFillRect(renderer, &this->rect);
 }
 
 Physics::Physics(Ball* ball, PlayerBar* player1, PlayerBar* player2){
@@ -152,7 +162,7 @@ Pong::Pong(){
 
 void Pong::initSDL(){
     if (SDL_Init(SDL_INIT_EVERYTHING) == 0){
-        this->window = SDL_CreateWindow("conway's game",
+        this->window = SDL_CreateWindow("Pong!",
                 SDL_WINDOWPOS_CENTERED,
                 SDL_WINDOWPOS_CENTERED,
                 640,
@@ -163,8 +173,30 @@ void Pong::initSDL(){
     }
     else {
         this->running = false;
+        std::cout << "Could not initialize SDL."<<std::endl;
         return;
     }
+    // if (Mix_Init(MIX_INIT_MP3) == 0){
+    //     this->running = false;
+    //     std::cout << Mix_GetError() << std::endl;
+    // }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
+        this->running = false;
+        std::cout << "Could not initialize SDL Mixer."<<std::endl;
+        return;
+    }
+    // if (Mix_OpenAudioDevice(44100, MIX_DEFAULT_FORMAT, 2, 2048, NULL,
+    //     SDL_AUDIO_ALLOW_FREQUENCY_CHANGE |
+    //     SDL_AUDIO_ALLOW_CHANNELS_CHANGE) < 0){
+    //     this->running = false;
+    //     std::cout << Mix_GetError() << std::endl;
+    // }
+    // int* freq = new int;
+    // Uint16* format = new Uint16;
+    // int* channels = new int;
+    // Mix_QuerySpec(freq, format, channels);
+    // std::cout <<"frequency: " << *freq << " format: " << *format << " channels: " << *channels << std::endl;
+    this->mixer = new Mixer();
     if (this->renderer){
         SDL_SetRenderDrawColor(this->renderer, 0,0,0,255);
         std::cout << "Renderer Created!"<<std::endl;
