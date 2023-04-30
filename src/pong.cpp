@@ -57,7 +57,7 @@ void drawCircle(SDL_Point center, int radius, SDL_Renderer* renderer, SDL_Color 
 }
 
 Mixer::Mixer(){
-    this->pong = Mix_LoadMUS("sounds/press.mp3");
+    this->pong = Mix_LoadWAV("sounds/press.mp3");
     if (this->pong == NULL){
         std::cout << Mix_GetError() << std::endl;
     }
@@ -98,24 +98,24 @@ void Physics::update(){
     this->ball->pos.x += this->ball->velocity.x;
     this->ball->pos.y += this->ball->velocity.y;
     //playerbar velocity
-    this->player1->rect.y += this->barSpeed*(this->player1->downPressed-this->player1->upPressed);
-    this->player2->rect.y += this->barSpeed*(this->player2->downPressed-this->player2->upPressed);
+    this->player1->rect.y += 4.5*(this->player1->downPressed-this->player1->upPressed);
+    this->player2->rect.y += 4.5*(this->player2->downPressed-this->player2->upPressed);
     // collision with window
     if (this->ball->pos.x + this->ball->radius > RES_WIDTH){
         this->ball->pos.x = RES_WIDTH - this->ball->radius;
         // this->ball->velocity.x  *= -1;
         // point for player1
         this->player1->points++;
-        Mix_PlayMusic(this->game->mixer->pong, -1);
+        Mix_PlayChannel(0, this->game->mixer->pong, 0);
         this->ball->pos = {RES_WIDTH/2,RES_HEIGHT/2};
         this->ball->color = {255, 255, 255, 255};
-        this->ball->velocity = {1,2};
+        this->ball->velocity = {float(rand()%1+1),float(rand()%2+1)};
         this->barSpeed = 2;
     }
     if (this->ball->pos.y + this->ball->radius > RES_HEIGHT){
         this->ball->pos.y = RES_HEIGHT - this->ball->radius;
         this->ball->velocity.y  *= -1;
-        Mix_PlayMusic(this->game->mixer->pong, 0);
+        Mix_PlayChannel(0, this->game->mixer->pong, 0);
     }
     if (this->ball->pos.x - this->ball->radius < 0){
         this->ball->pos.x = 0 + this->ball->radius;
@@ -123,14 +123,14 @@ void Physics::update(){
         this->player2->points++;
         this->ball->pos = {RES_WIDTH/2,RES_HEIGHT/2};
         this->ball->color = {255, 255, 255, 255};
-        this->ball->velocity = {-1,-2};
+        this->ball->velocity = {-float(rand()%2+1),-float(rand()%2+1)};
         this->barSpeed = 2;
-        Mix_PlayMusic(this->game->mixer->pong, 0);
+        Mix_PlayChannel(0, this->game->mixer->pong, 0);
     }
     if (this->ball->pos.y - this->ball->radius < 0){
         this->ball->pos.y = 0 + this->ball->radius;
         this->ball->velocity.y  *= -1;
-        Mix_PlayMusic(this->game->mixer->pong, 0);
+        Mix_PlayChannel(0, this->game->mixer->pong, 0);
     }
     // collision with player bars
     if (this->ball->pos.x - this->ball->radius < this->player1->rect.x + this->player1->rect.w
@@ -142,8 +142,7 @@ void Physics::update(){
         this->ball->pos.x = this->player1->rect.x + this->player1->rect.w + this->ball->radius;
         this->ball->color = this->player1->color;
         this->ball->velocity.x  *= -1.1;//ball speeds up
-        Mix_PlayMusic(this->game->mixer->pong, 0);
-        this->barSpeed = 2*sqrt(abs(this->ball->velocity.x));
+        Mix_PlayChannel(0, this->game->mixer->pong, 0);
     }
     if (this->ball->pos.x + this->ball->radius > this->player2->rect.x
         && this->ball->pos.x < this->player2->rect.x + this->player2->rect.w
@@ -154,8 +153,7 @@ void Physics::update(){
         this->ball->pos.x = this->player2->rect.x - this->ball->radius;
         this->ball->color = this->player2->color;
         this->ball->velocity.x  *= -1.1;
-        Mix_PlayMusic(this->game->mixer->pong, 0);
-        this->barSpeed = 2*sqrt(abs(this->ball->velocity.x));
+        Mix_PlayChannel(0, this->game->mixer->pong, 0);
     }
 }
 

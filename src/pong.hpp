@@ -16,7 +16,7 @@ struct vector {
 class Mixer {
 public:
     Mixer();
-    Mix_Music* pong = NULL;
+    Mix_Chunk* pong = NULL;
 };
 
 class Ball {
